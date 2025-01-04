@@ -1,0 +1,1 @@
+export { SimpleComposeModal as ComposeModal } from './SimpleComposeModal';
