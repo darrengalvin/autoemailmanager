@@ -1,4 +1,12 @@
 {
+  "/auth/callback/route": "app/auth/callback/route.js",
+  "/api/ai/test/route": "app/api/ai/test/route.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/drafts/page": "app/drafts/page.js",
   "/page": "app/page.js",
-  "/setup/page": "app/setup/page.js"
+  "/pending/page": "app/pending/page.js",
+  "/setup/page": "app/setup/page.js",
+  "/auth/page": "app/auth/page.js",
+  "/admin/page": "app/admin/page.js",
+  "/settings/page": "app/settings/page.js"
 }

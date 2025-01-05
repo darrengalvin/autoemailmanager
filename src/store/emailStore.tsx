@@ -24,7 +24,7 @@ export const useEmailStore = create<EmailStore>((set) => ({
     replyDelay: 0,
     excludedEmails: [],
     branding: {
-      logoUrl: null,
+      logoUrl: 'https://firebasestorage.googleapis.com/v0/b/yourcaio-649fe.appspot.com/o/DARRENGALVINPROFILE_38.jpg?alt=media&token=2f9e7366-e421-43a3-90cd-a13ad83dcc33',
       primaryColor: '#014380',
       secondaryColor: '#014584',
       companyName: '',

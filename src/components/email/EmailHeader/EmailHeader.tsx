@@ -5,6 +5,7 @@ import { UserProfile } from '@/components/common/UserProfile';
 import { ProcessingMode } from './ProcessingMode';
 import { useAuth } from '@/hooks/useAuth';
 import { ConnectEmailModal } from '../ConnectEmailModal';
+import { WelcomeModal } from '@/components/setup/WelcomeModal';
 import { useState } from 'react';
 
 interface EmailHeaderProps {
@@ -14,7 +15,13 @@ interface EmailHeaderProps {
 
 export function EmailHeader({ title, onCompose }: EmailHeaderProps) {
   const { user } = useAuth();
-  const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [showConnectModal, setShowConnectModal] = useState(false);
+
+  const handleStartSetup = () => {
+    setShowWelcomeModal(false);
+    setShowConnectModal(true);
+  };
 
   return (
     <div className="bg-white border-b">
@@ -39,19 +46,25 @@ export function EmailHeader({ title, onCompose }: EmailHeaderProps) {
               </>
             ) : (
               <button
-                onClick={() => setIsConnectModalOpen(true)}
+                onClick={() => setShowWelcomeModal(true)}
                 className="px-4 py-2 bg-primary text-white hover:bg-primary-dark rounded-md"
               >
-                Connect Account
+                Get Started
               </button>
             )}
           </div>
         </div>
       </div>
 
+      <WelcomeModal
+        isOpen={showWelcomeModal}
+        onClose={() => setShowWelcomeModal(false)}
+        onStartSetup={handleStartSetup}
+      />
+
       <ConnectEmailModal 
-        isOpen={isConnectModalOpen}
-        onClose={() => setIsConnectModalOpen(false)}
+        isOpen={showConnectModal}
+        onClose={() => setShowConnectModal(false)}
       />
     </div>
   );

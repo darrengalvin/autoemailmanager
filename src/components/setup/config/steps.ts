@@ -1,11 +1,22 @@
-import { Database, Table, Box, Mail, Palette } from 'lucide-react';
+import { Database, Table, Box, Mail, Palette, Info } from 'lucide-react';
+import { WelcomeStep } from '../steps/WelcomeStep';
 import { DatabaseConnection } from '../steps/DatabaseConnection';
 import { TableSetup } from '../steps/TableSetup';
 import { DummyDataSetup } from '../steps/DummyDataSetup';
 import { EmailSetup } from '../steps/EmailSetup';
 import { BrandingSetup } from '../steps/BrandingSetup';
 
-export const steps = [
+// Welcome step is separate from the main setup steps
+export const welcomeStep = {
+  id: 'welcome' as const,
+  title: 'Welcome',
+  description: 'Project overview and getting started',
+  icon: Info,
+  component: WelcomeStep
+};
+
+// Main setup steps (excluding welcome)
+export const setupSteps = [
   {
     id: 'database-connection',
     title: 'Database Connection',
@@ -43,5 +54,7 @@ export const steps = [
   }
 ] as const;
 
-export type SetupStep = (typeof steps)[number];
-export type StepId = SetupStep['id'];
+// Combined steps for internal use
+export const steps = [welcomeStep, ...setupSteps] as const;
+
+export type StepId = typeof steps[number]['id'];

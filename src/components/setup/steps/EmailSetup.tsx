@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Mail, Shield, Bot, Lock } from 'lucide-react';
+import { Mail, Shield, Bot, Lock, Loader2 } from 'lucide-react';
 import { MicrosoftIcon } from '@/components/icons/MicrosoftIcon';
+import { signInWithMicrosoft } from '@/utils/auth';
 
 interface EmailSetupProps {
   onComplete: () => void;
@@ -10,6 +11,18 @@ interface EmailSetupProps {
 
 export function EmailSetup({ onComplete }: EmailSetupProps) {
   const [isConnecting, setIsConnecting] = useState(false);
+
+  const handleMicrosoftConnect = async () => {
+    try {
+      setIsConnecting(true);
+      await signInWithMicrosoft();
+      onComplete();
+    } catch (error) {
+      console.error('Failed to connect Microsoft account:', error);
+    } finally {
+      setIsConnecting(false);
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -46,18 +59,16 @@ export function EmailSetup({ onComplete }: EmailSetupProps) {
         {/* Provider Options */}
         <div className="grid gap-4">
           <button
-            onClick={() => {
-              setIsConnecting(true);
-              setTimeout(() => {
-                setIsConnecting(false);
-                onComplete();
-              }, 1500);
-            }}
+            onClick={handleMicrosoftConnect}
             disabled={isConnecting}
             className="flex items-center gap-4 p-4 bg-[#f3f6fc] hover:bg-[#e9ecf5] rounded-lg group transition-colors"
           >
             <div className="w-12 h-12 bg-[#05a6f0] rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform">
-              <MicrosoftIcon className="w-6 h-6 text-white" />
+              {isConnecting ? (
+                <Loader2 className="w-6 h-6 text-white animate-spin" />
+              ) : (
+                <MicrosoftIcon className="w-6 h-6 text-white" />
+              )}
             </div>
             <div className="text-left">
               <h3 className="font-medium text-gray-900">Microsoft 365</h3>
