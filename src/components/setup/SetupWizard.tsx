@@ -22,6 +22,7 @@ const steps = [
           <li>Set a secure database password</li>
           <li>Wait for your project to be created (usually takes about 1 minute)</li>
         </ol>
+
         <div className="mt-6 p-4 bg-blue-50 rounded-lg">
           <p className="text-sm text-blue-700">
             💡 Tip: Make sure to save your database password somewhere secure. You'll need it later.
@@ -95,6 +96,17 @@ CREATE TABLE email_settings (
   UNIQUE(user_id, provider)
 );`}
         </pre>
+
+        <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+          <h4 className="font-medium text-blue-900 mb-2">How This Works:</h4>
+          <ul className="space-y-2 text-sm text-blue-800">
+            <li>• Organizations can share a single Supabase instance</li>
+            <li>• Multiple users can belong to the same organization</li>
+            <li>• Usage tracking is per-organization, not per-user</li>
+            <li>• Email data remains private in your Supabase instance</li>
+            <li>• We only store minimal user data for analytics and support</li>
+          </ul>
+        </div>
       </div>
     ),
   },

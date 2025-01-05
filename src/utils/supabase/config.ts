@@ -9,5 +9,12 @@ export const supabaseConfig = {
       prompt: 'consent',
       domain_hint: 'organizations'
     }
+  },
+  googleConfig: {
+    scopes: 'email https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.labels',
+    queryParams: {
+      access_type: 'offline',
+      prompt: 'consent'
+    }
   }
 };
