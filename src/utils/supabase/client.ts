@@ -22,6 +22,14 @@ export function createClient() {
 }
 
 function createMockClient() {
+  const createBuilder = () => {
+    const chain: any = {
+      eq: (column: string, value: any) => chain,
+      then: (onfulfilled: any) => Promise.resolve({ data: [], error: null }).then(onfulfilled)
+    };
+    return chain;
+  };
+
   return {
     auth: {
       getSession: async () => ({ data: { session: null }, error: null }),
@@ -41,10 +49,7 @@ function createMockClient() {
       })
     },
     from: (table: string) => ({
-      select: (columns?: string) => ({
-        single: async () => ({ data: null, error: null }),
-        eq: () => ({ data: [], error: null })
-      }),
+      select: (columns?: string) => createBuilder(),
       insert: async (data: any) => {
         logger.info(`Mock inserting into ${table}:`, data);
         return {
@@ -52,7 +57,8 @@ function createMockClient() {
           error: null
         };
       },
-      upsert: async (data: any) => ({ data, error: null })
+      upsert: async (data: any) => ({ data, error: null }),
+      delete: () => createBuilder()
     })
   };
 }

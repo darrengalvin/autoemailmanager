@@ -1,5 +1,5 @@
-import { headers, cookies } from 'next/headers';
-import { createClient } from '@/utils/supabase/server';
+import { headers } from 'next/headers';
+import { createClient } from '@/utils/supabase/client';
 import { logger } from '@/utils/logger';
 
 export async function GET(request: Request) {
@@ -10,7 +10,7 @@ export async function GET(request: Request) {
     const errorDescription = searchParams.get('error_description');
 
     if (error) {
-      logger.error('OAuth error:', error, errorDescription);
+      logger.error(`OAuth error: ${error} - ${errorDescription || 'No description'}`);
       return Response.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/?error=${error}`);
     }
 
@@ -44,7 +44,7 @@ export async function GET(request: Request) {
 
     if (!tokenResponse.ok) {
       const error = await tokenResponse.text();
-      logger.error('Token exchange failed:', error);
+      logger.error(`Token exchange failed: ${error}`);
       return Response.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/?error=token_exchange_failed`);
     }
 
@@ -57,26 +57,47 @@ export async function GET(request: Request) {
     });
 
     // Initialize Supabase client
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
+    const supabase = createClient();
 
-    // Sign in with Supabase using the Microsoft token
-    const { data: authData, error: signInError } = await supabase.auth.signInWithIdToken({
-      provider: 'azure',
-      token: tokens.access_token,
-      nonce: Math.random().toString(36).substring(2)
-    });
+    // Get the current session
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError) {
+      logger.error(`Session error: ${sessionError.message}`);
+      return Response.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/?error=session_error`);
+    }
 
-    if (signInError) {
-      logger.error('Supabase sign in error:', signInError);
-      return Response.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/?error=auth_failed`);
+    if (!session?.user) {
+      // If no session, try to sign in
+      const { error: signInError } = await supabase.auth.signInWithOAuth({
+        provider: 'azure',
+        options: {
+          skipBrowserRedirect: true,
+          queryParams: {
+            access_token: tokens.access_token,
+            refresh_token: tokens.refresh_token
+          }
+        }
+      });
+
+      if (signInError) {
+        logger.error(`Supabase sign in error: ${signInError.message}`);
+        return Response.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/?error=auth_failed`);
+      }
+    }
+
+    // Get the user ID from the session
+    const userId = session?.user?.id;
+    if (!userId) {
+      logger.error('No user ID available');
+      return Response.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/?error=no_user_id`);
     }
 
     // Store the Microsoft tokens
     const { error: updateError } = await supabase
       .from('email_connections')
       .upsert({
-        user_id: authData.user.id,
+        user_id: userId,
         provider: 'microsoft',
         access_token: tokens.access_token,
         refresh_token: tokens.refresh_token,
@@ -84,14 +105,14 @@ export async function GET(request: Request) {
       });
 
     if (updateError) {
-      logger.error('Token storage error:', updateError);
+      logger.error(`Token storage error: ${updateError.message}`);
       return Response.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/?error=token_storage_failed`);
     }
 
     // Successful connection
     return Response.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/?success=true`);
   } catch (error) {
-    logger.error('Callback error:', error);
+    logger.error(`Callback error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     return Response.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/?error=callback_failed`);
   }
 } 

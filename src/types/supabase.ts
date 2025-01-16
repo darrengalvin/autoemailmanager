@@ -41,6 +41,41 @@ export interface Database {
           user_id?: string
         }
       }
+      email_connections: {
+        Row: {
+          id: string
+          user_id: string
+          provider: string
+          email: string
+          access_token: string
+          refresh_token?: string
+          expires_at?: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          provider: string
+          email: string
+          access_token: string
+          refresh_token?: string
+          expires_at?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          provider?: string
+          email?: string
+          access_token?: string
+          refresh_token?: string
+          expires_at?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
       user_settings: {
         Row: {
           user_id: string

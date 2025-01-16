@@ -1,24 +1,10 @@
 /** @type {import('next').NextConfig} */
-const config = {
-  reactStrictMode: true,
-  swcMinify: true,
+const nextConfig = {
   experimental: {
-    serverActions: true,
-  },
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'console.firebase.google.com',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'firebasestorage.googleapis.com',
-        pathname: '/**',
-      }
-    ],
-  },
+    serverActions: {
+      allowedOrigins: ['localhost:3001', 'autoemailmanager.netlify.app']
+    }
+  }
 };
 
-export default config;
+export default nextConfig;

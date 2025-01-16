@@ -54,13 +54,14 @@ export async function getFeedbackStats(emailId: string) {
   const { data, error } = await supabase
     .from('ai_feedback')
     .select('rating, helpful')
-    .eq('email_id', emailId) as { data: { rating: number; helpful: boolean }[]; error: any };
+    .eq('email_id', emailId)
+    .then((result: { data: { rating: number; helpful: boolean; }[]; error: any; }) => result as { data: { rating: number; helpful: boolean }[]; error: any });
 
   if (error) throw error;
 
   return {
-    averageRating: data.reduce((acc, curr) => acc + curr.rating, 0) / data.length,
-    helpfulCount: data.filter(f => f.helpful).length,
+    averageRating: data.reduce((acc: any, curr: { rating: any; }) => acc + curr.rating, 0) / data.length,
+    helpfulCount: data.filter((f: { helpful: any; }) => f.helpful).length,
     totalCount: data.length
   };
 }
