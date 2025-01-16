@@ -3,145 +3,95 @@
 import { useState, useCallback } from 'react';
 import { useEmailStore } from '@/store/emailStore';
 import { Email } from '@/types';
+import { EmailService } from '@/services/emailService';
+import { createClient } from '@/utils/supabase/client';
 
 export function useMicrosoftGraph() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const { setEmails } = useEmailStore();
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(true);
 
   const fetchEmails = useCallback(async () => {
     setLoading(true);
     setError(null);
     
     try {
-      // Detailed sample data for development
-      const mockEmails: Email[] = [
+      // First show the welcome message
+      if (showWelcome) {
+        setIsTransitioning(true);
+        // Show welcome message for 2 seconds
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        setShowWelcome(false);
+      }
+
+      // Get the current user's Microsoft connection
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error('Not authenticated');
+      }
+
+      const { data: connections, error: connectionsError } = await supabase
+        .from('user_connections')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('provider', 'microsoft')
+        .single();
+
+      if (connectionsError || !connections) {
+        throw new Error('No Microsoft connection found');
+      }
+
+      // Check if token is expired
+      if (connections.expires_at && new Date(connections.expires_at) <= new Date()) {
+        throw new Error('Microsoft token has expired');
+      }
+
+      // Initialize the email service with the access token
+      const emailService = new EmailService(connections.access_token);
+      
+      // Fetch real emails
+      console.log('Fetching real emails...');
+      const realEmails = await emailService.fetchEmails();
+      console.log('Fetched emails:', realEmails.length);
+      
+      setEmails(realEmails);
+    } catch (err) {
+      console.error('Error fetching emails:', err);
+      setError(err instanceof Error ? err : new Error('Failed to fetch emails'));
+      
+      // If we fail to get real emails, show an error message
+      setEmails([
         {
           id: '1',
-          subject: 'Urgent: Q4 Budget Review Meeting',
-          from: 'sarah.finance@company.com',
+          subject: 'Error Loading Emails',
+          from: 'system@emailmanager.app',
           to: ['user@example.com'],
-          body: `Hi Team,
-
-I hope this email finds you well. We need to schedule an urgent meeting to review the Q4 budget projections. Our preliminary analysis shows some concerning trends that require immediate attention.
-
-Key points for discussion:
-- Revenue forecast adjustments
-- Unexpected cost increases in Q3
-- Impact on year-end targets
-- Mitigation strategies
-
-Please let me know your availability for tomorrow or Wednesday.
-
-Best regards,
-Sarah`,
-          attachments: [
-            { id: '1', name: 'Q4_Budget_Review.xlsx', type: 'spreadsheet', size: 2048576, url: '#' },
-            { id: '2', name: 'Financial_Summary.pdf', type: 'document', size: 1048576, url: '#' }
-          ],
+          body: `We encountered an error loading your emails. Please try refreshing the page or signing out and back in.\n\nError: ${err instanceof Error ? err.message : 'Unknown error'}`,
+          attachments: [],
           timestamp: new Date(),
-          status: 'ai_pending',
+          status: 'human_pending',
           aiMetadata: {
             sentiment: 'negative',
             priority: 'high',
-            category: 'finance',
-            suggestedResponse: 'Thank you for bringing this to our attention...'
-          },
-          aiSuggestion: {
-            id: '1',
-            body: `Dear Sarah,
-
-Thank you for raising these concerns about the Q4 budget. I understand the urgency and can make myself available tomorrow at 2 PM for the review meeting.
-
-I've already reviewed the preliminary numbers and agree that we need to address these trends promptly. I'll prepare some initial mitigation proposals for discussion.
-
-Would tomorrow at 2 PM work for you?
-
-Best regards,
-[Your name]`,
-            confidence: 0.92,
-            reasoning: 'Response prioritizes urgency while maintaining professional tone'
-          }
-        },
-        {
-          id: '2',
-          subject: 'New Product Launch Success!',
-          from: 'marketing.team@company.com',
-          to: ['user@example.com'],
-          body: `Hello everyone,
-
-I'm thrilled to share that our latest product launch has exceeded all expectations! The initial numbers are incredibly promising:
-
-• 150% above projected sales
-• 92% positive customer feedback
-• Featured in 3 major tech publications
-• #1 trending in our category
-
-This success is a testament to everyone's hard work and dedication. Special thanks to the development team for delivering such an outstanding product, and to our marketing team for the excellent campaign execution.
-
-Let's schedule a celebration soon!
-
-Cheers,
-Marketing Team`,
-          attachments: [],
-          timestamp: new Date(Date.now() - 3600000),
-          status: 'human_pending',
-          aiMetadata: {
-            sentiment: 'positive',
-            priority: 'medium',
-            category: 'marketing',
-          },
-          aiSuggestion: {
-            id: '2',
-            body: 'Congratulations on the successful launch! This is fantastic news...',
-            confidence: 0.88,
-            reasoning: 'Positive acknowledgment with specific metrics mentioned'
-          }
-        },
-        {
-          id: '3',
-          subject: 'Weekly Development Update',
-          from: 'dev.lead@company.com',
-          to: ['user@example.com'],
-          body: `Team,
-
-Here's our weekly development update:
-
-Sprint Progress:
-✅ User authentication refactor completed
-🏗️ API optimization in progress (75% complete)
-📱 Mobile responsive design implementation started
-🐛 Fixed 12 high-priority bugs
-
-Upcoming Challenges:
-- Database migration scheduled for next week
-- Load testing for new features
-- Third-party integration updates
-
-Please review the attached technical documentation and provide feedback by Friday.
-
-Regards,
-Dev Team`,
-          attachments: [
-            { id: '3', name: 'TechnicalSpec.pdf', type: 'document', size: 3145728, url: '#' }
-          ],
-          timestamp: new Date(Date.now() - 7200000),
-          status: 'approved',
-          aiMetadata: {
-            sentiment: 'neutral',
-            priority: 'medium',
-            category: 'development'
+            category: 'system'
           }
         }
-      ];
-      
-      setEmails(mockEmails);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to fetch emails'));
+      ]);
     } finally {
       setLoading(false);
+      setIsTransitioning(false);
     }
-  }, [setEmails]);
+  }, [setEmails, showWelcome]);
 
-  return { loading, error, fetchEmails };
+  return { 
+    loading, 
+    error, 
+    fetchEmails,
+    isTransitioning,
+    showWelcome
+  };
 }

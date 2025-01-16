@@ -8,7 +8,7 @@ import { WelcomeModal } from '@/components/setup/WelcomeModal';
 import { ConnectEmailModal } from '@/components/email/ConnectEmailModal';
 
 export function AuthStatusHeader() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { settings } = useEmailStore();
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [showConnectModal, setShowConnectModal] = useState(false);
@@ -58,7 +58,10 @@ export function AuthStatusHeader() {
                   <div className="text-sm text-gray-600">
                     Signed in as <span className="font-medium text-gray-900">{user.email}</span>
                   </div>
-                  <button className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors text-sm">
+                  <button 
+                    onClick={signOut}
+                    className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors text-sm"
+                  >
                     <LogOut className="w-4 h-4" />
                     Sign Out
                   </button>

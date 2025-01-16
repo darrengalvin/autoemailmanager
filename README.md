@@ -17,15 +17,15 @@ A powerful, AI-driven email management system that helps you handle your emails 
   - Priority-based model selection
 
 - **Privacy & Security**
-  - Self-hosted option available
-  - Complete data ownership
   - End-to-end encryption
   - Microsoft OAuth integration
+  - Complete data ownership
+  - Secure infrastructure
 
-- **Cost Management**
+- **Advanced Management**
   - Real-time usage monitoring
-  - Department-specific budgets
-  - Automated cost optimization
+  - Department-specific settings
+  - Automated optimization
   - Flexible model selection
 
 ## 💻 Technology Stack
@@ -35,41 +35,6 @@ A powerful, AI-driven email management system that helps you handle your emails 
 - **Authentication**: Supabase Auth, Microsoft OAuth
 - **Database**: PostgreSQL (via Supabase)
 - **AI Integration**: GPT-4, Claude, Gemini, DeepSeek
-
-## 🚀 Deployment Options
-
-### Self-Hosted
-- Complete control over infrastructure
-- Own your data and AI credentials
-- Customizable setup
-- Typical costs:
-  - Infrastructure: £6-8/month
-  - AI Processing: Based on usage
-  - Storage: Up to 8GB included
-
-### Managed Service
-- Instant setup
-- Managed updates and maintenance
-- Technical support included
-- Flexible pricing based on usage
-
-## 💰 Running Costs
-
-### Infrastructure
-- Database hosting: £6-8/month (Supabase Pro)
-- Storage: 8GB included (~100k emails)
-- Serverless architecture: No additional costs
-
-### AI Processing (per email)
-- GPT-4: £0.04
-- Claude: £0.03
-- Gemini: £0.025
-- DeepSeek: £0.02
-
-### Monthly Scenarios
-- Startup (~100 emails): £10-15/month
-- Growth (~500 emails): £25-35/month
-- Enterprise (1000+ emails): £45-60/month
 
 ## 🛠 Setup Process
 
@@ -106,17 +71,15 @@ A powerful, AI-driven email management system that helps you handle your emails 
 
 ### Analytics & Monitoring
 - Usage tracking
-- Cost analysis
 - Performance metrics
 - Model effectiveness
 - Response quality
 
 ## 🔒 Privacy & Security
 
-- Data stored in your Supabase instance
+- Secure data storage
 - Minimal tracking for analytics
 - Complete data export available
-- No vendor lock-in
 - Clear cancellation process
 
 ## 🎯 Best Practices
@@ -126,7 +89,6 @@ A powerful, AI-driven email management system that helps you handle your emails 
 - Utilize Gemini for international emails
 - Implement approval workflows
 - Monitor usage patterns
-- Regular cost optimization
 
 ## 📝 License
 

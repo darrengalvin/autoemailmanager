@@ -10,10 +10,11 @@ import { EmailFilters } from '../EmailFilters/EmailFilters';
 import { useMicrosoftGraph } from '@/hooks/useMicrosoftGraph';
 import { Email } from '@/types';
 import { budgetReviewThread } from '@/utils/mockData';
+import { Loader2 } from 'lucide-react';
 
 export function EmailDashboard() {
   const { emails } = useEmailStore();
-  const { fetchEmails } = useMicrosoftGraph();
+  const { fetchEmails, loading, isTransitioning, showWelcome } = useMicrosoftGraph();
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
   const [filteredEmails, setFilteredEmails] = useState(emails);
 
@@ -48,6 +49,31 @@ export function EmailDashboard() {
   useEffect(() => {
     setFilteredEmails(emails);
   }, [emails]);
+
+  if (isTransitioning || showWelcome) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-50 to-white">
+        <div className="text-center space-y-4 max-w-lg mx-auto p-8">
+          {showWelcome ? (
+            <>
+              <h2 className="text-2xl font-bold text-blue-900">Welcome to Your Smart Inbox!</h2>
+              <p className="text-blue-600">
+                You have successfully logged in. We're preparing to show you your real emails...
+              </p>
+            </>
+          ) : (
+            <>
+              <h2 className="text-2xl font-bold text-blue-900">Loading Your Emails</h2>
+              <p className="text-blue-600">
+                Switching from demo mode to your actual inbox...
+              </p>
+            </>
+          )}
+          <Loader2 className="w-8 h-8 text-blue-600 animate-spin mx-auto mt-4" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">

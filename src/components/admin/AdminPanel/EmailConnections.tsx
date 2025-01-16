@@ -1,26 +1,95 @@
 'use client';
 
-import { useState } from 'react';
-import { Mail, MailPlus, AlertCircle, Check, Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { MailPlus, Mail, Loader2, Check, AlertCircle } from 'lucide-react';
+import { createClient } from '@/utils/supabase/client';
 
 interface ConnectionStatus {
   microsoft: boolean;
   google: boolean;
+  loading: boolean;
+  email?: string;
 }
 
 export function EmailConnections() {
-  const [connecting, setConnecting] = useState<'microsoft' | 'google' | null>(null);
-  const [connected, setConnected] = useState<ConnectionStatus>({
+  const [status, setStatus] = useState<ConnectionStatus>({
     microsoft: false,
-    google: false
+    google: false,
+    loading: true
   });
 
-  const handleConnect = async (provider: 'microsoft' | 'google') => {
-    setConnecting(provider);
-    // Simulate connection process
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setConnected(prev => ({ ...prev, [provider]: true }));
-    setConnecting(null);
+  useEffect(() => {
+    checkConnectionStatus();
+  }, []);
+
+  const checkConnectionStatus = async () => {
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        setStatus(prev => ({ ...prev, loading: false }));
+        return;
+      }
+
+      const { data: connections } = await supabase
+        .from('user_connections')
+        .select('provider, email')
+        .eq('user_id', user.id);
+
+      const microsoftConnection = connections?.find(c => c.provider === 'microsoft');
+      
+      setStatus({
+        microsoft: !!microsoftConnection,
+        google: false, // Google not implemented yet
+        loading: false,
+        email: microsoftConnection?.email
+      });
+    } catch (error) {
+      console.error('Failed to check connection status:', error);
+      setStatus(prev => ({ ...prev, loading: false }));
+    }
+  };
+
+  const handleConnect = async () => {
+    // Redirect to Microsoft OAuth
+    window.location.href = '/api/oauth/microsoft';
+  };
+
+  const handleDisconnect = async () => {
+    try {
+      setStatus(prev => ({ ...prev, loading: true }));
+      const supabase = createClient();
+      
+      // Delete the connection from user_connections using a more specific query
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { error } = await supabase
+        .from('user_connections')
+        .delete()
+        .match({ 
+          user_id: user.id,
+          provider: 'microsoft'
+        });
+
+      if (error) throw error;
+
+      // Sign out from Supabase
+      await supabase.auth.signOut();
+
+      setStatus({
+        microsoft: false,
+        google: false,
+        loading: false
+      });
+
+      // Refresh the page to reset the app state
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Failed to disconnect:', error);
+      setStatus(prev => ({ ...prev, loading: false }));
+    }
   };
 
   return (
@@ -38,26 +107,37 @@ export function EmailConnections() {
               <MailPlus className="w-8 h-8 text-blue-600" />
               <div>
                 <h3 className="font-medium text-gray-900">Microsoft Account</h3>
-                <p className="text-sm text-gray-500">Connect your Outlook or Office 365 account</p>
+                <p className="text-sm text-gray-500">
+                  {status.microsoft && status.email 
+                    ? `Connected as ${status.email}`
+                    : 'Connect your Outlook or Office 365 account'}
+                </p>
               </div>
             </div>
-            <button
-              onClick={() => handleConnect('microsoft')}
-              disabled={connecting === 'microsoft' || connected.microsoft}
-              className={`px-4 py-2 rounded-md flex items-center gap-2 ${
-                connected.microsoft
-                  ? 'bg-green-50 text-green-600'
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
-              }`}
-            >
-              {connecting === 'microsoft' ? (
-                <><Loader2 className="w-4 h-4 animate-spin" /> Connecting...</>
-              ) : connected.microsoft ? (
-                <><Check className="w-4 h-4" /> Connected</>
-              ) : (
-                'Connect'
-              )}
-            </button>
+            {status.loading ? (
+              <div className="flex items-center gap-2 text-gray-500">
+                <Loader2 className="w-4 h-4 animate-spin" /> Checking status...
+              </div>
+            ) : status.microsoft ? (
+              <div className="flex items-center gap-4">
+                <span className="text-sm text-green-600 flex items-center gap-1">
+                  <Check className="w-4 h-4" /> Connected
+                </span>
+                <button
+                  onClick={handleDisconnect}
+                  className="text-sm text-red-600 hover:text-red-700"
+                >
+                  Disconnect
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={handleConnect}
+                className="text-sm text-blue-600 hover:text-blue-700"
+              >
+                Connect Account
+              </button>
+            )}
           </div>
 
           <div className="mt-4 bg-white rounded p-4 border border-gray-200">
@@ -87,23 +167,14 @@ export function EmailConnections() {
                 <p className="text-sm text-gray-500">Connect your Gmail account</p>
               </div>
             </div>
-            <button
-              onClick={() => handleConnect('google')}
-              disabled={connecting === 'google' || connected.google}
-              className={`px-4 py-2 rounded-md flex items-center gap-2 ${
-                connected.google
-                  ? 'bg-green-50 text-green-600'
-                  : 'bg-red-600 text-white hover:bg-red-700'
-              }`}
-            >
-              {connecting === 'google' ? (
-                <><Loader2 className="w-4 h-4 animate-spin" /> Connecting...</>
-              ) : connected.google ? (
-                <><Check className="w-4 h-4" /> Connected</>
-              ) : (
-                'Connect'
-              )}
-            </button>
+            <div className="opacity-50">
+              <button
+                disabled
+                className="text-sm text-gray-500"
+              >
+                Coming Soon
+              </button>
+            </div>
           </div>
 
           <div className="mt-4 bg-white rounded p-4 border border-gray-200">

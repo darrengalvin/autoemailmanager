@@ -85,6 +85,7 @@ export interface Email {
     threadId?: string;
     labels?: string[];
     priority?: 'high' | 'normal' | 'low';
+    hasAttachments?: boolean;
   };
   aiMetadata?: {
     sentiment?: string;
